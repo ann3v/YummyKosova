@@ -1,50 +1,136 @@
-# Welcome to your Expo app 👋
+# YummyKosova
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+YummyKosova is an Expo + React Native restaurant discovery app for Kosovo. The current foundation includes Expo Router navigation, Supabase Auth, Supabase-backed restaurant data, saved restaurants, and a small production-friendly UI system.
 
-## Get started
+## Stack
 
-1. Install dependencies
+- Expo
+- React Native
+- TypeScript
+- Expo Router
+- Supabase Auth + Postgres
 
-   ```bash
-   npm install
-   ```
+## Prerequisites
 
-2. Start the app
+- Node.js 20+
+- npm
+- Expo Go or a simulator/emulator
+- A Supabase project
+- A Google Maps API key for future map/location features
 
-   ```bash
-   npx expo start
-   ```
+## Environment Setup
 
-In the output, you'll find options to open the app in a
+1. Copy `.env.example` to `.env.local`.
+2. Fill in the required values:
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
-
-```bash
-npm run reset-project
+```env
+EXPO_PUBLIC_SUPABASE_URL=https://your-project-ref.supabase.co
+EXPO_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key
+EXPO_PUBLIC_GOOGLE_MAPS_API_KEY=your-google-maps-api-key
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+Notes:
 
-## Learn more
+- Expo automatically exposes `EXPO_PUBLIC_*` variables to the client app.
+- Supabase is required for auth, restaurant reads, and saved restaurants.
+- Google Maps is documented now so onboarding stays complete even before map screens are added.
 
-To learn more about developing your project with Expo, look at the following resources:
+## Install Dependencies
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+```bash
+npm install
+```
 
-## Join the community
+## Run The Expo App
 
-Join our community of developers creating universal apps.
+```bash
+npm start
+```
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+Useful variants:
+
+```bash
+npm run android
+npm run ios
+npm run web
+```
+
+## Configure Supabase
+
+1. Create a Supabase project.
+2. Copy the project URL and anon key into `.env.local`.
+3. Enable Email auth in the Supabase dashboard.
+4. Apply the SQL migration in `supabase/migrations/`.
+5. Run the seed data in `supabase/seed.sql` if you want starter restaurants locally.
+
+Recommended dashboard settings:
+
+- Authentication: enable Email provider
+- Authentication: decide whether email confirmation should be required
+- URL configuration: add your app scheme later if you introduce magic links or email redirects
+
+## Configure Google Maps
+
+Add `EXPO_PUBLIC_GOOGLE_MAPS_API_KEY` to `.env.local`.
+
+This project does not yet ship a live maps screen, but the key is documented now so future onboarding does not need to change shape later. When maps are added, platform-specific setup may also be needed in Expo config.
+
+## Quality Checks
+
+Run lint:
+
+```bash
+npm run lint
+```
+
+Run type-check:
+
+```bash
+npm run typecheck
+```
+
+## CI
+
+GitHub Actions is configured in `.github/workflows/ci.yml` to run:
+
+- dependency install via `npm ci`
+- lint
+- type-check
+
+## API Debugging Notes
+
+For Supabase REST examples and debugging flows, see:
+
+- `docs/api-usage.md`
+
+That file documents:
+
+- auth-related Supabase requests
+- restaurant read examples
+- saved restaurants examples
+
+## Project Structure
+
+```text
+app/
+src/
+supabase/
+docs/
+.github/
+```
+
+## Current Focus
+
+The app currently supports:
+
+- onboarding flow
+- email/password auth with Supabase
+- restaurant discovery
+- saved restaurants
+
+Not implemented yet:
+
+- reviews
+- reservations
+- maps UI
+- admin content management

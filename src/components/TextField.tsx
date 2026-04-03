@@ -1,0 +1,52 @@
+import type { TextInputProps } from 'react-native';
+import { StyleSheet, TextInput, View } from 'react-native';
+
+import { AppText } from '@/src/components/AppText';
+import { theme } from '@/src/theme';
+
+type TextFieldProps = TextInputProps & {
+  label: string;
+  hint?: string;
+  error?: string;
+};
+
+export function TextField({ label, hint, error, style, ...props }: TextFieldProps) {
+  const helperText = error ?? hint;
+
+  return (
+    <View style={styles.wrapper}>
+      <AppText variant="label">{label}</AppText>
+      <TextInput
+        placeholderTextColor={theme.colors.mutedText}
+        style={[styles.input, error ? styles.inputError : undefined, style]}
+        {...props}
+      />
+      {helperText ? (
+        <AppText
+          variant="caption"
+          color={error ? theme.colors.danger : theme.colors.mutedText}>
+          {helperText}
+        </AppText>
+      ) : null}
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  wrapper: {
+    gap: theme.spacing.sm,
+  },
+  input: {
+    minHeight: 52,
+    borderRadius: theme.radius.md,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+    backgroundColor: theme.colors.surface,
+    paddingHorizontal: theme.spacing.lg,
+    fontSize: theme.typography.sizes.body,
+    color: theme.colors.text,
+  },
+  inputError: {
+    borderColor: theme.colors.danger,
+  },
+});

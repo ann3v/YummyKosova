@@ -1,176 +1,115 @@
-# YummyKosova Setup Guide
+# 📱 YummyKosova — Quick Setup Guide
 
-This guide helps you set up the **YummyKosova** project on your laptop from scratch.
+## 🚀 Project Overview
 
----
+YummyKosova is a React Native (Expo) app for discovering restaurants in Kosovo.
 
-## 1. What you need installed first
+### ✅ Current Features Implemented
 
-Install these tools before opening the project:
-
-- **Node.js LTS**
-- **Git**
-- **VS Code**
-- **Expo Go** on your phone (optional, but useful for testing)
-
-To check that Node and Git are installed, open a terminal and run:
-
-```bash
-node -v
-git --version
-```
+- Supabase project setup
+- Database schema + seed data (10 restaurants)
+- Authentication (Supabase Auth)
+- Login / Signup UI
+- Expo Router navigation structure
+- AsyncStorage integration for auth persistence
 
 ---
 
-## 2. Clone the project
+## ⚡ Quick Setup (for teammates & professor)
 
-Open a terminal and run:
+### 1. Clone the project
 
-```bash
-git clone https://github.com/ann3v/YummyKosova.git
-cd YummyKosova
-```
-
-If the folder name on your machine is different, just `cd` into that folder.
+git clone <your-repo-url>
+cd yummykosova
 
 ---
 
-## 3. Install project dependencies
+### 2. Install dependencies
 
-Run:
-
-```bash
 npm install
-```
-
-This installs everything from `package.json`.
 
 ---
 
-## 4. Start the Expo project
+### 3. Install required native packages (IMPORTANT)
 
-Run:
+npx expo install @react-native-async-storage/async-storage
+npx expo install react-native-url-polyfill
 
-```bash
+---
+
+### 4. Setup environment variables
+
+Create a .env file in the root:
+
+EXPO_PUBLIC_SUPABASE_URL=your_supabase_url
+EXPO_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
+
+You can find these in:
+Supabase → Project Settings → API
+
+---
+
+### 5. Run the app
+
 npx expo start
-```
-
-This will open the Expo dev server.
-
-You can then run the app by:
-
-- scanning the QR code with **Expo Go** on your phone
-- pressing **a** for Android emulator
-- pressing **w** for web
 
 ---
 
-## 5. If NativeWind is part of the project
+## 🗄️ Database Setup (IMPORTANT)
 
-If the project already includes NativeWind setup, your friend only needs to install dependencies with `npm install`.
+If database is empty, run seed manually:
 
-If NativeWind still needs to be set up manually, use:
-
-```bash
-npm install nativewind react-native-reanimated react-native-safe-area-context
-npm install --save-dev tailwindcss@^3.4.17 prettier-plugin-tailwindcss@^0.5.11 babel-preset-expo
-npx tailwindcss init
-```
-
-After that, make sure the project contains the required config files such as:
-
-- `tailwind.config.js`
-- `babel.config.js`
-- `metro.config.js`
-- a global stylesheet if used
+1. Go to Supabase Dashboard
+2. Open SQL Editor
+3. Paste contents of seed.sql
+4. Click Run
 
 ---
 
-## 6. Recommended first run checks
+## ⚠️ Common Issues
 
-After starting the app, make sure:
+### ❌ No restaurants available
 
-- the project opens without build errors
-- the Expo server starts correctly
-- the app loads on phone, emulator, or web
-- there are no missing package errors
+- Make sure seed.sql is executed
+- Check restaurants table has data
+- Disable RLS if needed:
 
----
-
-## 7. Common issues
-
-### `npm install` fails
-
-Try:
-
-```bash
-npm cache clean --force
-npm install
-```
-
-### Expo does not start
-
-Try:
-
-```bash
-npx expo start --clear
-```
-
-### Git is not recognized
-
-That means Git is not installed correctly or not added to PATH.
-
-### `node` is not recognized
-
-That means Node.js is not installed correctly or not added to PATH.
+alter table restaurants disable row level security;
+alter table restaurant_images disable row level security;
 
 ---
 
-## 8. Daily workflow
+### ❌ AsyncStorage error
 
-Whenever your friend pulls new changes, they should usually run:
+If you see "Native module is null":
 
-```bash
-git pull
-npm install
-npx expo start
-```
-
-`npm install` is important after pulling if dependencies changed.
+npx expo install @react-native-async-storage/async-storage
+npx expo start -c
 
 ---
 
-## 9. Suggested project workflow
+## 📁 Key Project Structure
 
-Basic workflow for contributing:
-
-```bash
-git checkout -b feature/your-feature-name
-# make changes
-git add .
-git commit -m "your commit message"
-git push -u origin feature/your-feature-name
-```
+app/
+(auth)/
+(tabs)/
+(onboarding)/
+lib/
+supabase.ts
 
 ---
 
-## 10. Notes
+## 🧠 Notes
 
-Right now the project started from an Expo template, so some starter files may still exist. That is normal. The important part is that the project runs correctly first, then you can clean the template and build real features on top of it.
-
----
-
-## 11. Quick setup version
-
-If your friend already has Node.js and Git installed, the short version is:
-
-```bash
-git clone https://github.com/ann3v/YummyKosova.git
-cd YummyKosova
-npm install
-npx expo start
-```
+- Seed file (seed.sql) must be run manually
+- Supabase is used for Auth and Database
+- App uses Expo Router
 
 ---
 
-Good luck and have fun building YummyKosova.
+## ✅ Status
+
+Backend connected
+Auth working
+Seed data loaded
+App runs locally
