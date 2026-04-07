@@ -13,7 +13,8 @@ insert into public.restaurants (
   longitude,
   phone,
   website,
-  is_featured
+  is_featured,
+  is_published
 )
 values
   (
@@ -29,6 +30,7 @@ values
     21.165503,
     '+383 38 221 450',
     null,
+    true,
     true
   ),
   (
@@ -44,6 +46,7 @@ values
     21.161492,
     '+383 38 248 910',
     null,
+    true,
     true
   ),
   (
@@ -59,6 +62,7 @@ values
     20.739176,
     '+383 29 244 801',
     null,
+    false,
     false
   ),
   (
@@ -74,6 +78,7 @@ values
     20.741118,
     '+383 29 221 660',
     null,
+    true,
     true
   ),
   (
@@ -89,6 +94,7 @@ values
     20.288435,
     '+383 39 431 220',
     null,
+    true,
     true
   ),
   (
@@ -104,6 +110,7 @@ values
     20.296311,
     '+383 39 440 118',
     null,
+    false,
     false
   ),
   (
@@ -119,6 +126,7 @@ values
     20.431193,
     '+383 39 325 404',
     null,
+    false,
     false
   ),
   (
@@ -134,6 +142,7 @@ values
     20.435977,
     '+383 39 326 220',
     null,
+    false,
     false
   ),
   (
@@ -149,6 +158,7 @@ values
     21.155298,
     '+383 29 330 512',
     null,
+    true,
     true
   ),
   (
@@ -164,6 +174,7 @@ values
     21.152445,
     '+383 29 333 740',
     null,
+    false,
     false
   )
 on conflict (slug) do update
@@ -180,6 +191,7 @@ set
   phone = excluded.phone,
   website = excluded.website,
   is_featured = excluded.is_featured,
+  is_published = excluded.is_published,
   updated_at = now();
 
 delete from public.restaurant_images
@@ -217,5 +229,104 @@ join (
     ('n-kulle-smokehouse', 'https://placehold.co/1200x800/png?text=N+Kulle+Smokehouse', 'Smokehouse platter at N''Kullë Smokehouse', 0)
 ) as v(slug, image_url, alt_text, sort_order)
   on v.slug = r.slug;
+
+delete from public.menu_items
+where category_id in (
+  select mc.id
+  from public.menu_categories mc
+  join public.restaurants r on r.id = mc.restaurant_id
+  where r.slug in (
+    'te-sheshi-bistro',
+    'sofra-e-vjeter',
+    'lumbardhi-terrace',
+    'dukagjini-kitchen'
+  )
+);
+
+delete from public.menu_categories
+where restaurant_id in (
+  select id
+  from public.restaurants
+  where slug in (
+    'te-sheshi-bistro',
+    'sofra-e-vjeter',
+    'lumbardhi-terrace',
+    'dukagjini-kitchen'
+  )
+);
+
+insert into public.menu_categories (restaurant_id, name, description, sort_order, is_active)
+select r.id, v.name, v.description, v.sort_order, true
+from public.restaurants r
+join (
+  values
+    ('te-sheshi-bistro', 'Brunch Plates', 'Slow starts, eggs, and lighter mid-day favorites.', 0),
+    ('te-sheshi-bistro', 'Pasta & Mains', 'Comforting house specials for lunch and dinner.', 1),
+    ('sofra-e-vjeter', 'Traditional Plates', 'Kosovar staples served in generous portions.', 0),
+    ('sofra-e-vjeter', 'Weekend Specials', 'Classic dishes that rotate around the family table.', 1),
+    ('lumbardhi-terrace', 'Seafood & Salads', 'Fresh plates built for the riverside terrace.', 0),
+    ('lumbardhi-terrace', 'Sunset Mains', 'Heavier evening dishes for long dinners in Prizren.', 1),
+    ('dukagjini-kitchen', 'Starters', 'A refined start built around local produce and dairy.', 0),
+    ('dukagjini-kitchen', 'Signature Plates', 'Contemporary Albanian dishes and house specialties.', 1),
+    ('dukagjini-kitchen', 'Desserts', 'Sweet finishes with a polished dinner-service feel.', 2)
+) as v(slug, name, description, sort_order)
+  on v.slug = r.slug;
+
+insert into public.menu_items (
+  category_id,
+  name,
+  description,
+  price,
+  image_url,
+  image_alt_text,
+  sort_order,
+  is_available,
+  availability_note
+)
+select
+  mc.id,
+  v.item_name,
+  v.item_description,
+  v.price,
+  v.image_url,
+  v.image_alt_text,
+  v.sort_order,
+  v.is_available,
+  v.availability_note
+from public.menu_categories mc
+join public.restaurants r on r.id = mc.restaurant_id
+join (
+  values
+    ('te-sheshi-bistro', 'Brunch Plates', 'Truffle Omelette', 'Soft eggs, sauteed mushrooms, parmesan, and herbs.', 9.50, 'https://placehold.co/400x400/png?text=Truffle+Omelette', 'Truffle omelette at Te Sheshi Bistro', 0, true, null),
+    ('te-sheshi-bistro', 'Brunch Plates', 'Ricotta Pancakes', 'Fluffy pancakes with whipped ricotta, berries, and honey.', 8.50, null, null, 1, true, 'Weekend favorite'),
+    ('te-sheshi-bistro', 'Pasta & Mains', 'Fresh Tagliatelle', 'Hand-cut pasta with roasted tomatoes, basil, and pecorino.', 12.00, null, null, 0, true, null),
+    ('te-sheshi-bistro', 'Pasta & Mains', 'Roasted Chicken Plate', 'Herbed chicken with lemon potatoes and seasonal greens.', 13.50, 'https://placehold.co/400x400/png?text=Roasted+Chicken', 'Roasted chicken plate at Te Sheshi Bistro', 1, true, null),
+    ('sofra-e-vjeter', 'Traditional Plates', 'Flija with Yogurt', 'Layered traditional pastry served warm with village yogurt.', 7.00, 'https://placehold.co/400x400/png?text=Flija', 'Flija served at Sofra e Vjetër', 0, true, 'Served daily'),
+    ('sofra-e-vjeter', 'Traditional Plates', 'Tavë Prizreni', 'Slow-baked peppers, meat, and potatoes in a rich clay-pan sauce.', 11.50, null, null, 1, true, null),
+    ('sofra-e-vjeter', 'Weekend Specials', 'Pite e Shtëpisë', 'House pie with spinach and local cheese baked fresh each morning.', 6.50, null, null, 0, true, 'Weekends only'),
+    ('lumbardhi-terrace', 'Seafood & Salads', 'Grilled Sea Bass', 'Whole grilled sea bass with lemon oil and charred fennel.', 17.00, 'https://placehold.co/400x400/png?text=Sea+Bass', 'Sea bass plate at Lumbardhi Terrace', 0, true, null),
+    ('lumbardhi-terrace', 'Seafood & Salads', 'Citrus Shrimp Salad', 'Shrimp, greens, citrus segments, and toasted almonds.', 12.50, null, null, 1, true, null),
+    ('lumbardhi-terrace', 'Sunset Mains', 'Seafood Risotto', 'Creamy risotto with mussels, shrimp, herbs, and parmesan.', 15.00, null, null, 0, true, null),
+    ('lumbardhi-terrace', 'Sunset Mains', 'Lamb Shoulder', 'Slow-cooked lamb shoulder with root vegetables and pan jus.', 18.50, null, null, 1, true, 'Evening special'),
+    ('dukagjini-kitchen', 'Starters', 'Whipped Feta Dip', 'Creamy feta, roasted peppers, olive oil, and toasted bread.', 6.00, null, null, 0, true, null),
+    ('dukagjini-kitchen', 'Starters', 'Charred Zucchini', 'Zucchini ribbons, herbs, yogurt dressing, and walnuts.', 5.50, null, null, 1, true, null),
+    ('dukagjini-kitchen', 'Signature Plates', 'Veal Medallions', 'Tender veal, potato puree, wild mushrooms, and red wine glaze.', 19.00, 'https://placehold.co/400x400/png?text=Veal+Medallions', 'Veal medallions at Dukagjini Kitchen', 0, true, null),
+    ('dukagjini-kitchen', 'Signature Plates', 'Forest Mushroom Pappardelle', 'Wide pasta with mushroom ragout, thyme, and aged cheese.', 14.00, null, null, 1, true, null),
+    ('dukagjini-kitchen', 'Desserts', 'Honey Cake', 'Layered sponge with burnt honey cream and toasted crumbs.', 5.00, null, null, 0, true, null),
+    ('dukagjini-kitchen', 'Desserts', 'Chocolate Mousse', 'Dark chocolate mousse with sea salt and berry compote.', 5.50, null, null, 1, true, null)
+) as v(
+  restaurant_slug,
+  category_name,
+  item_name,
+  item_description,
+  price,
+  image_url,
+  image_alt_text,
+  sort_order,
+  is_available,
+  availability_note
+)
+  on v.restaurant_slug = r.slug
+ and v.category_name = mc.name;
 
 commit;

@@ -1,3 +1,4 @@
+import { useRouter } from 'expo-router';
 import { StyleSheet, View } from 'react-native';
 
 import { AppText } from '@/src/components/AppText';
@@ -5,13 +6,16 @@ import { Card } from '@/src/components/Card';
 import { EmptyState } from '@/src/components/EmptyState';
 import { NoticeBanner } from '@/src/components/NoticeBanner';
 import { Screen } from '@/src/components/Screen';
+import { StatusCard } from '@/src/components/StatusCard';
 import { useAuth } from '@/src/features/auth/AuthProvider';
 import { RestaurantCard } from '@/src/features/restaurants/RestaurantCard';
+import { getRestaurantDetailHref } from '@/src/features/restaurants/routes';
 import { useRestaurantCatalog } from '@/src/features/restaurants/useRestaurantCatalog';
 import { useI18n } from '@/src/i18n/I18nProvider';
 import { theme } from '@/src/theme';
 
 export default function DiscoverScreen() {
+  const router = useRouter();
   const { user } = useAuth();
   const { messages } = useI18n();
   const {
@@ -49,28 +53,27 @@ export default function DiscoverScreen() {
         </AppText>
       </View>
 
-      {errorMessage ? (
-        <NoticeBanner message={errorMessage} variant="error" />
-      ) : null}
       {mutationErrorMessage ? (
         <NoticeBanner message={mutationErrorMessage} variant="error" />
       ) : null}
 
       {isLoading ? (
-        <Card style={styles.statusCard}>
-          <AppText variant="subtitle">{messages.restaurants.loadingTitle}</AppText>
-          <AppText variant="body" color={theme.colors.mutedText}>
-            {messages.restaurants.loadingMessage}
-          </AppText>
-        </Card>
+        <StatusCard
+          title={messages.restaurants.loadingTitle}
+          message={messages.restaurants.loadingMessage}
+          isLoading
+        />
       ) : null}
 
       {!isLoading && errorMessage ? (
-        <Card style={styles.statusCard}>
-          <AppText variant="body" color={theme.colors.mutedText}>
-            {messages.restaurants.loadError}
-          </AppText>
-        </Card>
+        <EmptyState
+          title={messages.restaurants.discoverTitle}
+          description={messages.restaurants.loadError}
+          actionLabel={messages.common.retry}
+          onActionPress={() => {
+            void refresh();
+          }}
+        />
       ) : null}
 
       {!isLoading && !errorMessage && restaurants.length === 0 ? (
@@ -93,6 +96,9 @@ export default function DiscoverScreen() {
               savedLabel={messages.restaurants.savedAction}
               featuredLabel={messages.restaurants.featuredBadge}
               ratingLabel={messages.restaurants.ratingLabel}
+              onPress={(selectedRestaurant) => {
+                router.push(getRestaurantDetailHref(selectedRestaurant.slug));
+              }}
               isSavePending={pendingRestaurantIds.includes(restaurant.id)}
               onToggleSaved={(restaurantId, nextSaved) => {
                 void toggleSaved(restaurantId, nextSaved);
@@ -118,8 +124,5 @@ const styles = StyleSheet.create({
   },
   sectionHeader: {
     gap: theme.spacing.xs,
-  },
-  statusCard: {
-    gap: theme.spacing.sm,
   },
 });

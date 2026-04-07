@@ -1,9 +1,10 @@
 import { Ionicons } from '@expo/vector-icons';
-import { Image } from 'expo-image';
 import { Pressable, StyleSheet, View } from 'react-native';
 
 import { AppText } from '@/src/components/AppText';
 import { Card } from '@/src/components/Card';
+import { RestaurantBadge } from '@/src/features/restaurants/RestaurantBadge';
+import { RestaurantImageView } from '@/src/features/restaurants/RestaurantImageView';
 import { theme } from '@/src/theme';
 
 import type { RestaurantListItem } from '@/src/features/restaurants/types';
@@ -14,6 +15,7 @@ type RestaurantCardProps = {
   savedLabel: string;
   featuredLabel: string;
   ratingLabel: string;
+  onPress?: (restaurant: RestaurantListItem) => void;
   onToggleSaved: (restaurantId: string, nextSaved: boolean) => void;
   isSavePending?: boolean;
 };
@@ -24,33 +26,40 @@ export function RestaurantCard({
   savedLabel,
   featuredLabel,
   ratingLabel,
+  onPress,
   onToggleSaved,
   isSavePending = false,
 }: RestaurantCardProps) {
   return (
     <Card style={styles.card}>
-      {restaurant.imageUrl ? (
-        <Image
-          source={{ uri: restaurant.imageUrl }}
-          contentFit="cover"
-          style={styles.image}
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={restaurant.name}
+        disabled={!onPress}
+        onPress={() => onPress?.(restaurant)}
+        style={({ pressed }) => [pressed ? styles.cardPressed : undefined]}>
+        <RestaurantImageView
+          imageUrl={restaurant.imageUrl}
           accessibilityLabel={restaurant.imageAlt ?? restaurant.name}
+          fallbackTitle={restaurant.name}
+          style={styles.image}
         />
-      ) : (
-        <View style={styles.imageFallback}>
-          <Ionicons name="restaurant-outline" size={26} color={theme.colors.primary} />
-        </View>
-      )}
+      </Pressable>
 
       <View style={styles.body}>
         <View style={styles.topRow}>
-          <View style={styles.topCopy}>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={restaurant.name}
+            disabled={!onPress}
+            onPress={() => onPress?.(restaurant)}
+            style={({ pressed }) => [styles.topCopy, pressed ? styles.copyPressed : undefined]}>
             <AppText variant="subtitle">{restaurant.name}</AppText>
             <AppText variant="body" color={theme.colors.mutedText}>
               {restaurant.city}
               {restaurant.address ? ` · ${restaurant.address}` : ''}
             </AppText>
-          </View>
+          </Pressable>
 
           <Pressable
             accessibilityRole="button"
@@ -71,48 +80,39 @@ export function RestaurantCard({
           </Pressable>
         </View>
 
-        <View style={styles.metaRow}>
-          {restaurant.isFeatured ? (
-            <View style={[styles.badge, styles.featuredBadge]}>
-              <AppText variant="caption" color={theme.colors.primary}>
-                {featuredLabel}
-              </AppText>
-            </View>
-          ) : null}
-          {restaurant.cuisine ? (
-            <View style={styles.badge}>
-              <AppText variant="caption" color={theme.colors.mutedText}>
-                {restaurant.cuisine}
-              </AppText>
-            </View>
-          ) : null}
-          {restaurant.priceRange ? (
-            <View style={styles.badge}>
-              <AppText variant="caption" color={theme.colors.mutedText}>
-                {restaurant.priceRange}
-              </AppText>
-            </View>
-          ) : null}
-        </View>
-
-        {restaurant.description ? (
-          <AppText numberOfLines={3} variant="body" color={theme.colors.mutedText}>
-            {restaurant.description}
-          </AppText>
-        ) : null}
-
-        <View style={styles.footer}>
-          <View style={styles.footerInfo}>
-            <Ionicons name="star" size={14} color={theme.colors.gold} />
-            <AppText variant="caption" color={theme.colors.text}>
-              {ratingLabel}: {restaurant.rating?.toFixed(1) ?? 'N/A'}
-            </AppText>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={restaurant.name}
+          disabled={!onPress}
+          onPress={() => onPress?.(restaurant)}
+          style={({ pressed }) => [styles.contentPressable, pressed ? styles.copyPressed : undefined]}>
+          <View style={styles.metaRow}>
+            {restaurant.isFeatured ? (
+              <RestaurantBadge label={featuredLabel} tone="accent" />
+            ) : null}
+            {restaurant.cuisine ? <RestaurantBadge label={restaurant.cuisine} /> : null}
+            {restaurant.priceRange ? <RestaurantBadge label={restaurant.priceRange} /> : null}
           </View>
 
-          <AppText variant="caption" color={theme.colors.primary}>
-            {restaurant.isSaved ? savedLabel : saveLabel}
-          </AppText>
-        </View>
+          {restaurant.description ? (
+            <AppText numberOfLines={3} variant="body" color={theme.colors.mutedText}>
+              {restaurant.description}
+            </AppText>
+          ) : null}
+
+          <View style={styles.footer}>
+            <View style={styles.footerInfo}>
+              <Ionicons name="star" size={14} color={theme.colors.gold} />
+              <AppText variant="caption" color={theme.colors.text}>
+                {ratingLabel}: {restaurant.rating?.toFixed(1) ?? 'N/A'}
+              </AppText>
+            </View>
+
+            <AppText variant="caption" color={theme.colors.primary}>
+              {restaurant.isSaved ? savedLabel : saveLabel}
+            </AppText>
+          </View>
+        </Pressable>
       </View>
     </Card>
   );
@@ -128,16 +128,12 @@ const styles = StyleSheet.create({
     height: 180,
     backgroundColor: theme.colors.surfaceMuted,
   },
-  imageFallback: {
-    width: '100%',
-    height: 180,
-    backgroundColor: theme.colors.primarySoft,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
   body: {
     gap: theme.spacing.md,
     padding: theme.spacing.lg,
+  },
+  contentPressable: {
+    gap: theme.spacing.md,
   },
   topRow: {
     flexDirection: 'row',
@@ -168,19 +164,16 @@ const styles = StyleSheet.create({
   saveButtonPressed: {
     opacity: 0.85,
   },
+  cardPressed: {
+    opacity: 0.92,
+  },
+  copyPressed: {
+    opacity: 0.82,
+  },
   metaRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: theme.spacing.sm,
-  },
-  badge: {
-    paddingHorizontal: theme.spacing.sm,
-    paddingVertical: 6,
-    borderRadius: theme.radius.round,
-    backgroundColor: theme.colors.surfaceMuted,
-  },
-  featuredBadge: {
-    backgroundColor: theme.colors.primarySoft,
   },
   footer: {
     flexDirection: 'row',

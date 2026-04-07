@@ -8,6 +8,7 @@ import { NoticeBanner } from '@/src/components/NoticeBanner';
 import { Screen } from '@/src/components/Screen';
 import { useAuth } from '@/src/features/auth/AuthProvider';
 import { RestaurantCard } from '@/src/features/restaurants/RestaurantCard';
+import { getRestaurantDetailHref } from '@/src/features/restaurants/routes';
 import { useSavedRestaurants } from '@/src/features/restaurants/useSavedRestaurants';
 import { useI18n } from '@/src/i18n/I18nProvider';
 import { theme } from '@/src/theme';
@@ -61,7 +62,7 @@ export default function SavedScreen() {
           description={messages.restaurants.savedEmptyDescription}
           actionLabel={messages.restaurants.browseAction}
           onActionPress={() => {
-            router.push('/(tabs)');
+            router.push('/home');
           }}
         />
       ) : null}
@@ -86,6 +87,9 @@ export default function SavedScreen() {
               savedLabel={messages.restaurants.savedAction}
               featuredLabel={messages.restaurants.featuredBadge}
               ratingLabel={messages.restaurants.ratingLabel}
+              onPress={(selectedRestaurant) => {
+                router.push(getRestaurantDetailHref(selectedRestaurant.slug));
+              }}
               isSavePending={pendingRestaurantIds.includes(restaurant.id)}
               onToggleSaved={(restaurantId) => {
                 void unsaveRestaurant(restaurantId);

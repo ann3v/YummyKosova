@@ -84,13 +84,13 @@ Expected shape:
 ### List Restaurants With Images
 
 ```http
-GET /rest/v1/restaurants?select=id,name,slug,description,city,address,cuisine,price_range,rating,latitude,longitude,phone,website,is_featured,restaurant_images(id,image_url,alt_text,sort_order)&order=is_featured.desc,name.asc
+GET /rest/v1/restaurants?select=id,name,slug,description,city,address,cuisine,price_range,rating,latitude,longitude,phone,website,is_featured,is_published,restaurant_images(id,image_url,alt_text,sort_order)&is_published=eq.true&order=is_featured.desc,name.asc
 ```
 
 Notes:
 
 - This mirrors the app's Discover query.
-- `restaurants` and `restaurant_images` are public-read under RLS.
+- Only published restaurants and their images are public-read under RLS.
 
 Example response item:
 
@@ -107,6 +107,7 @@ Example response item:
     "price_range": "€€",
     "rating": 4.6,
     "is_featured": true,
+    "is_published": true,
     "restaurant_images": [
       {
         "id": "uuid",
@@ -142,7 +143,7 @@ Example response:
 ### List Current User's Saved Restaurants With Details
 
 ```http
-GET /rest/v1/saved_restaurants?select=restaurant_id,restaurants!inner(id,name,slug,description,city,address,cuisine,price_range,rating,latitude,longitude,phone,website,is_featured,restaurant_images(id,image_url,alt_text,sort_order))&user_id=eq.<auth-user-id>&order=created_at.desc
+GET /rest/v1/saved_restaurants?select=restaurant_id,restaurants!inner(id,name,slug,description,city,address,cuisine,price_range,rating,latitude,longitude,phone,website,is_featured,is_published,restaurant_images(id,image_url,alt_text,sort_order))&user_id=eq.<auth-user-id>&order=created_at.desc
 ```
 
 Example response item:
@@ -156,6 +157,7 @@ Example response item:
       "name": "Dukagjini Kitchen",
       "slug": "dukagjini-kitchen",
       "city": "Pejë",
+      "is_published": true,
       "restaurant_images": [
         {
           "image_url": "https://placehold.co/1200x800/png?text=Dukagjini+Kitchen",
@@ -167,6 +169,40 @@ Example response item:
   }
 ]
 ```
+
+### Get One Published Restaurant By Slug
+
+```http
+GET /rest/v1/restaurants?select=id,name,slug,description,city,address,cuisine,price_range,rating,latitude,longitude,phone,website,is_featured,is_published,restaurant_images(id,image_url,alt_text,sort_order)&slug=eq.<restaurant-slug>&is_published=eq.true&limit=1
+```
+
+Notes:
+
+- This mirrors the app's detail page fetch.
+- The `slug` is the stable route identifier used for in-app navigation and future deep links.
+
+### Search Published Restaurants With Combined Filters
+
+```http
+GET /rest/v1/restaurants?select=id,name,slug,description,city,address,cuisine,price_range,rating,latitude,longitude,phone,website,is_featured,is_published,restaurant_images(id,image_url,alt_text,sort_order)&is_published=eq.true&or=(name.ilike.%bistro%,cuisine.ilike.%bistro%,description.ilike.%bistro%,city.ilike.%bistro%)&city=eq.Prishtinë&price_range=eq.€€&order=is_featured.desc,name.asc
+```
+
+Notes:
+
+- This mirrors the app's Search screen query behavior.
+- The keyword search is applied across `name`, `cuisine`, `description`, and `city`.
+- `city`, `cuisine`, and `price_range` filters can be combined in the same request.
+
+### List Published Restaurants With Coordinates For Map Pins
+
+```http
+GET /rest/v1/restaurants?select=id,name,slug,description,city,address,cuisine,price_range,rating,latitude,longitude,phone,website,is_featured,is_published,restaurant_images(id,image_url,alt_text,sort_order)&is_published=eq.true&latitude=not.is.null&longitude=not.is.null&order=is_featured.desc,name.asc
+```
+
+Notes:
+
+- This mirrors the app's Map tab query behavior.
+- The returned shape is ready for map pins, preview cards, and future nearby-map queries.
 
 ### Save A Restaurant
 
@@ -204,6 +240,48 @@ DELETE /rest/v1/saved_restaurants?user_id=eq.<auth-user-id>&restaurant_id=eq.<re
 Expected result:
 
 - `204 No Content`
+
+## Menu Read Queries
+
+### List Active Menu Categories With Available Items
+
+```http
+GET /rest/v1/menu_categories?select=id,restaurant_id,name,description,sort_order,is_active,menu_items(id,name,description,price,image_url,image_alt_text,sort_order,is_available,availability_note)&restaurant_id=eq.<restaurant-id>&is_active=eq.true&order=sort_order.asc
+```
+
+Notes:
+
+- This mirrors the app's menu query on the restaurant detail screen.
+- Public RLS only exposes active categories and available items for published restaurants.
+- The mobile app groups items by category and sorts both categories and items by `sort_order`.
+
+Example response item:
+
+```json
+[
+  {
+    "id": "category-uuid",
+    "restaurant_id": "restaurant-uuid",
+    "name": "Brunch Plates",
+    "description": "Slow starts, eggs, and lighter mid-day favorites.",
+    "sort_order": 0,
+    "is_active": true,
+    "menu_items": [
+      {
+        "id": "item-uuid",
+        "name": "Truffle Omelette",
+        "description": "Soft eggs, sauteed mushrooms, parmesan, and herbs.",
+        "price": 9.5,
+        "image_url": "https://placehold.co/400x400/png?text=Truffle+Omelette",
+        "image_alt_text": "Truffle omelette at Te Sheshi Bistro",
+        "sort_order": 0,
+        "is_available": true,
+        "availability_note": null
+      }
+    ]
+  }
+]
+```
 
 ## Practical Recommendation
 

@@ -61,6 +61,15 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
+        name="map"
+        options={{
+          title: messages.tabs.map,
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="map-outline" size={size} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
         name="saved"
         options={{
           title: messages.tabs.saved,
@@ -76,6 +85,13 @@ export default function TabLayout() {
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="person-outline" size={size} color={color} />
           ),
+        }}
+      />
+      <Tabs.Screen
+        name="restaurants/[slug]"
+        options={{
+          href: null,
+          headerShown: false,
         }}
       />
     </Tabs>
