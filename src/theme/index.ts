@@ -1,9 +1,10 @@
 import type { Theme } from '@react-navigation/native';
 
-import { colors, radius, shadow, spacing, typography } from './tokens';
+import { colors, gradients, radius, shadow, spacing, typography } from './tokens';
 
 export const theme = {
   colors,
+  gradients,
   spacing,
   radius,
   typography,
@@ -16,7 +17,7 @@ export const navigationTheme: Theme = {
     primary: colors.primary,
     background: colors.background,
     card: colors.surface,
-    text: colors.text,
+    text: colors.heading,
     border: colors.border,
     notification: colors.gold,
   },
